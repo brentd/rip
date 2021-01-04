@@ -1,9 +1,9 @@
 # rip - Read In Parallel
 
-`rip` provides a simple interface for processing large files or streams in parallel. It was created to speed up the transformation of multi-GB files in varying formats into a common format inside of an ETL pipeline.
+`rip` provides a simple interface for processing large files or streams in parallel. It was created to speed up the transformation of multi-GB files in varying formats into a common format inside of a single node ETL pipeline.
 
 ```
-          process chunks of data on each CPU core
+               process chunks of data on each CPU core
 
                                       >-e------------i----...->
                                       >-b----------h------...->
@@ -18,6 +18,8 @@ This might be useful to you if:
   * You're processing large files, so you want to parse it as a stream to reduce or transform the data without loading it all into memory
   * Parsing/transforming/reducing is CPU bound *or* you want to use a parser that can only parse in-memory data in a streaming fashion
   * Your data is mostly repeated records of the same type that can be broken into chunks and processed in any order
+
+It might be less useful if your files are terabytes large, in which case you're probably already using something distributed like Hadoop. This library is intended for a sweet spot where single node processing is faster, cheaper, and simpler.
 
 ## Usage
 
