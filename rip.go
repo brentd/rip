@@ -21,7 +21,6 @@ func NewParallelReader() *ParallelReader {
 	r.Concurrency = runtime.NumCPU()
 	r.ChunkBoundary = "\n"
 	r.ChunkSize = 1 << 16 // 64 KiB
-	r.chunks = make(chan *chunk, r.Concurrency)
 
 	return r
 }
@@ -31,6 +30,7 @@ func NewParallelReader() *ParallelReader {
 // order.
 func (r *ParallelReader) Read(stream io.Reader, work func(chunk []byte)) {
 	r.pool = NewPool(r.Concurrency, r.ChunkSize)
+	r.chunks = make(chan *chunk, r.Concurrency)
 
 	scanner := bufio.NewScanner(stream)
 
@@ -71,6 +71,7 @@ func (r *ParallelReader) Read(stream io.Reader, work func(chunk []byte)) {
 // not evenly divisible by ChunkSize.
 func (r *ParallelReader) ReadFixed(stream io.Reader, work func(chunk []byte)) {
 	r.pool = NewPool(r.Concurrency, r.ChunkSize)
+	r.chunks = make(chan *chunk, r.Concurrency)
 
 	wg := r.startWorkers(work)
 
