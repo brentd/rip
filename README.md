@@ -15,11 +15,13 @@ input: a--b--c--d--e--f--g... ->RIP-> >-a-------f---------...-> ... some output
 
 This might be useful to you if:
 
-  * You're processing large files, so you want to parse it as a stream to reduce or transform the data without loading it all into memory
-  * Parsing/transforming/reducing is CPU bound *or* you want to use a parser that can only parse in-memory data in a streaming fashion
-  * Your data is mostly repeated records of the same type that can be broken into chunks and processed in any order
+  * You're processing large files, so you want to parse the data as a stream to transform or reduce it without loading it all into memory
+  * Parsing/transforming/reducing on a single thread is CPU bound
+  * Your data is mostly repeated records of the same type that can easily be broken into chunks and processed in any order - CSV is perfect, but even XML might be made to work (see examples)
 
-It might be less useful if your files are terabytes large, in which case you're probably already using something distributed like Hadoop. This library is intended for a sweet spot where single node processing is faster, cheaper, and simpler.
+It might be less useful if your files are terabytes large, in which case you're probably already using something distributed like Hadoop. This library is intended for the sweet spot where single node processing is faster, cheaper, and simpler than a distributed system.
+
+You could also potentially use this library to turn a parser that can't normally operate on streams (e.g. some of Go's built-in decoders) into a streaming parser.
 
 ## Usage
 
