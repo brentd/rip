@@ -75,3 +75,11 @@ parallelReader.Read(os.Stdin, func(chunk []byte) {
   // but using `ChunkBoundary` ensures that data chunks never split a record.
 })
 ```
+
+## Memory Usage
+
+Some notes about the library's internals that might be useful to understand:
+
+  * To reduce allocations and work required by the GC, the reader thread reuses a fixed pool of byte buffers of size `ChunkSize`, one for each goroutine. In addition, one chunk per goroutine can be read ahead of the workers. That means your program's memory use will be at least `ChunkSize * Concurrency * 2` while a read is occurring. The default value of `Concurrency` is Go's `runtime.NumCPU()`. At the default chunk size of 64 KiB, a 6-core CPU would use `64 * 6 * 2 = 768 KiB`.
+  * This also means that you should not try to use the raw byte array, `chunk`, outside of the callback provided to `Read()` without copying its data first (which you're probably already incidentally doing).
+
