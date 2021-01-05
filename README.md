@@ -1,6 +1,6 @@
 # rip - Read In Parallel
 
-`rip` is a small Go package for processing large files or streams in parallel. It was created to speed up the transformation of multi-GB files in varying formats inside of a single node ETL pipeline.
+`rip` is a small Go package for processing large files or streams in parallel on one machine. It was created to speed up the transformation of multi-GB files in varying formats inside of a single node ETL pipeline.
 
 ```
                process chunks of data on each CPU core
@@ -19,7 +19,7 @@ This might be useful to you if:
   * Parsing/transforming/reducing on a single thread is CPU bound
   * Your data is mostly repeated records of the same type that can easily be broken into chunks and processed in any order - CSV is perfect, but even XML might be made to work (see examples)
 
-It might be less useful if your files are terabytes large, in which case you're probably already using something distributed like Hadoop. This library is intended for the sweet spot where single node processing is faster, cheaper, and simpler than a distributed system.
+It might be less useful if your files are terabytes large, in which case you're probably already using something distributed like Hadoop. This library is intended for the sweet spot where single node processing is faster, cheaper, and simpler than a distributed system, but naturally this depends on what you're doing.
 
 You could also potentially use this library to turn a parser that can't normally operate on streams (e.g. some of Go's built-in decoders) into a streaming parser.
 
