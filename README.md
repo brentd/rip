@@ -1,6 +1,6 @@
 # rip - Read In Parallel
 
-`rip` provides a simple interface for processing large files or streams in parallel. It was created to speed up the transformation of multi-GB files in varying formats into a common format inside of a single node ETL pipeline.
+`rip` is a small Go package for processing large files or streams in parallel. It was created to speed up the transformation of multi-GB files in varying formats into a common format inside of a single node ETL pipeline.
 
 ```
                process chunks of data on each CPU core
