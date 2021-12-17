@@ -9,11 +9,13 @@ import (
 )
 
 type ParallelReader struct {
-	Concurrency   int
-	ChunkSize     int
-	ChunkBoundary string
-	chunks        chan *chunk
-	pool          *Pool
+	Concurrency        int
+	ChunkSize          int
+	ChunkBoundary      string
+	ChunkBoundaryStart string
+	RequireBoundary    bool
+	chunks             chan *chunk
+	pool               *Pool
 }
 
 func NewParallelReader() *ParallelReader {
@@ -136,13 +138,14 @@ func (r *ParallelReader) ScanChunksWithBoundary(data []byte, atEOF bool) (advanc
 	// Now that we have the desired chunk size, return the slice of the buffer
 	// that ends with ChunkBoundary, instructing the Scanner to advance to the end
 	// of the boundary on the next read.
-	idx := bytes.LastIndex(data, []byte(r.ChunkBoundary))
-	if idx > -1 {
-		boundaryEnd := idx + len(r.ChunkBoundary)
-		return boundaryEnd, data[:boundaryEnd], nil
+	startIdx := bytes.Index(data, []byte(r.ChunkBoundaryStart))
+	endIdx := bytes.LastIndex(data, []byte(r.ChunkBoundary))
+	if endIdx > -1 {
+		boundaryEnd := endIdx + len(r.ChunkBoundary)
+		return boundaryEnd, data[startIdx:boundaryEnd], nil
 	}
 
-	// If we weren't able to find a boundary, but we're not yet at EOF, request
+	// If we weren't able to find a boundary, and we're not yet at EOF, request
 	// more data. bufio.Scanner.Scan() will return false and set Err() if we reach
 	// the maximum buffer length but still haven't been able to find a chunk.
 	if !atEOF {
@@ -152,7 +155,11 @@ func (r *ParallelReader) ScanChunksWithBoundary(data []byte, atEOF bool) (advanc
 	// There is one final token to be delivered, which may be an empty string.
 	// Returning bufio.ErrFinalToken here tells Scan there are no more tokens
 	// after this but does not trigger an error to be returned from Scan itself.
-	return 0, data, bufio.ErrFinalToken
+	if r.RequireBoundary {
+		return 0, nil, bufio.ErrFinalToken
+	} else {
+		return 0, data, bufio.ErrFinalToken
+	}
 }
 
 // Stores the backing buffer and length at which a receiver will need to slice

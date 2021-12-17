@@ -74,30 +74,45 @@ func TestRead(t *testing.T) {
 
 		assert.Len(results, 2)
 		assert.Contains(results, "abcdefg|SPLIT|hijklmnop|SPLIT|", "hello")
+
 	})
 
-	// t.Run("", func(t *testing.T) {
-	// 	r := NewParallelReader()
-	// 	r.ChunkSize = 1 << 16
-	// 	r.ChunkBoundary = "\n"
-	//
-	// 	f, _ := os.Open("/dev/urandom")
-	// 	defer f.Close()
-	//
-	// 	randReader := &io.LimitedReader{R: f, N: 1 << 16}
-	//
-	// 	chunks := make(chan string, 128)
-	// 	r.Read(randReader, func(chunk []byte) {
-	// 		chunks <- string(chunk)
-	// 	})
-	// 	close(chunks)
-	//
-	// 	results := drain(chunks)
-	//
-	// 	t.Logf("%q", results[1])
-	// 	t.Fail()
-	// 	assert.Len(chunks, 2)
-	// })
+	t.Run("when using RequireBoundary", func(t *testing.T) {
+		r := NewParallelReader()
+		r.ChunkSize = 100
+		r.ChunkBoundary = "|SPLIT|"
+		r.RequireBoundary = true
+
+		chunks := make(chan string, 128)
+		r.Read(strings.NewReader("abcdefg|SPLIT|hijklmnop|SPLIT|hello"), func(chunk []byte) {
+			chunks <- string(chunk)
+		})
+		close(chunks)
+
+		results := drain(chunks)
+
+		assert.Len(results, 1)
+		assert.EqualValues(results, []string{"abcdefg|SPLIT|hijklmnop|SPLIT|"})
+	})
+
+	t.Run("ChunkBoundaryStart and ChunkBoundaryEnd", func(t *testing.T) {
+		r := NewParallelReader()
+		r.ChunkSize = 100
+		r.ChunkBoundaryStart = "<FOO>"
+		r.ChunkBoundary = "</FOO>"
+		r.RequireBoundary = true
+
+		chunks := make(chan string, 128)
+		r.Read(strings.NewReader("abcdefg<FOO>hijklmnop</FOO>hello"), func(chunk []byte) {
+			chunks <- string(chunk)
+		})
+		close(chunks)
+
+		results := drain(chunks)
+
+		assert.Len(results, 1)
+		assert.EqualValues([]string{"<FOO>hijklmnop</FOO>"}, results)
+	})
 }
 
 func drain(c <-chan string) []string {
